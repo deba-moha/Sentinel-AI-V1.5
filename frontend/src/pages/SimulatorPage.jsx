@@ -10,9 +10,11 @@ import {
   Lock,
   Zap,
   Info,
-  Server
+  Server,
+  Cpu
 } from 'lucide-react';
 import SeverityBadge from '../components/SeverityBadge';
+import DetectionBadge from '../components/DetectionBadge';
 import { apiService } from '../services/api';
 
 export default function SimulatorPage({ setActiveTab }) {
@@ -31,7 +33,7 @@ export default function SimulatorPage({ setActiveTab }) {
       badge: 'RULE-AUTH-BRUTEFORCE',
       severity: 'HIGH',
       description: 'Simulates 6 rapid failed password attempts against port 22 from an external attacker IP.',
-      expectedResult: 'Triggers High severity brute force alert at threshold 5.',
+      expectedResult: 'Triggers High severity deterministic brute force alert (threshold 5). High-frequency bursts can additionally trigger an unsupervised ML anomaly alert.',
       defaultCount: 6
     },
     {
@@ -42,7 +44,7 @@ export default function SimulatorPage({ setActiveTab }) {
       badge: 'RULE-NET-PORTSCAN',
       severity: 'MEDIUM',
       description: 'Simulates TCP SYN connection probes targeting 8 distinct destination ports (21, 22, 23, 80, 443, etc.).',
-      expectedResult: 'Triggers Medium severity port scan alert at 5 distinct ports.',
+      expectedResult: 'Triggers Medium severity deterministic port scan alert (threshold 5 ports). Rapid multi-port scans may also trigger an ML statistical anomaly alert.',
       defaultCount: 8
     },
     {
@@ -53,7 +55,7 @@ export default function SimulatorPage({ setActiveTab }) {
       badge: 'RULE-AUTH-ROOT-LOGIN',
       severity: 'CRITICAL',
       description: 'Simulates an authenticated remote root shell session opened from an untrusted public IP.',
-      expectedResult: 'Immediately triggers Critical severity root breach alert.',
+      expectedResult: 'Immediately triggers Critical severity deterministic root breach alert. Single-event logins may not trigger statistical ML anomaly detection.',
       defaultCount: 1
     },
     {
@@ -64,7 +66,7 @@ export default function SimulatorPage({ setActiveTab }) {
       badge: 'BENIGN / TELEMETRY',
       severity: 'LOW',
       description: 'Simulates an isolated mistyped password attempt for user "root".',
-      expectedResult: 'Captured as standard telemetry; NOT classified as critical.',
+      expectedResult: 'Captured as baseline telemetry; zero deterministic alerts triggered. Isolated low-volume events fall within baseline ML expectations.',
       defaultCount: 1
     },
     {
@@ -75,7 +77,7 @@ export default function SimulatorPage({ setActiveTab }) {
       badge: 'RULE-NET-DDOS-AGGREGATE',
       severity: 'CRITICAL',
       description: 'Simulates 24 HTTP flood probe requests targeting one destination across 6 distinct botnet IPs.',
-      expectedResult: 'Triggers Critical severity aggregate DDoS incident.',
+      expectedResult: 'Triggers Critical severity aggregate DDoS alert (threshold 20). High-volume surge telemetry typically triggers a concurrent ML anomaly alert.',
       defaultCount: 24
     },
     {
@@ -86,7 +88,7 @@ export default function SimulatorPage({ setActiveTab }) {
       badge: 'RULE-ANOMALOUS-SPIKE',
       severity: 'MEDIUM',
       description: 'Simulates 25 rapid requests hitting web endpoints from a single host within 60s.',
-      expectedResult: 'Triggers Medium severity volume spike alert at threshold 20.',
+      expectedResult: 'Triggers Medium severity deterministic traffic spike alert (threshold 20) and frequently registers as an unsupervised ML outlier.',
       defaultCount: 25
     },
     {
@@ -97,7 +99,7 @@ export default function SimulatorPage({ setActiveTab }) {
       badge: 'BENIGN BASELINE',
       severity: 'INFO',
       description: 'Simulates routine internal HTTP 200 responses, DNS resolutions, and legitimate user logins.',
-      expectedResult: 'Zero alerts triggered. Proves false-positive prevention.',
+      expectedResult: 'Zero deterministic alerts triggered. Normal operations align with the ML baseline, confirming low false-positive rates.',
       defaultCount: 5
     },
     {
@@ -108,7 +110,7 @@ export default function SimulatorPage({ setActiveTab }) {
       badge: 'MIXED TELEMETRY',
       severity: 'HIGH',
       description: 'Generates background legitimate traffic combined with an injected SSH brute-force attack.',
-      expectedResult: 'Generates standard logs and raises brute force alert.',
+      expectedResult: 'Raises deterministic brute force alert while logging normal events. Rapid attack injection can also produce a concurrent ML anomaly alert.',
       defaultCount: 12
     }
   ];
@@ -139,15 +141,23 @@ export default function SimulatorPage({ setActiveTab }) {
           Synthetic Attack & Telemetry Simulator
         </h1>
         <p className="text-xs text-slate-400 mt-1">
-          Safely test Sentinel AI detection rules and demonstrate live incident triage.
+          Safely inject synthetic security telemetry to evaluate Sentinel AI V1.5 dual detection: 5 deterministic signature rules and an unsupervised Isolation Forest ML anomaly detector.
         </p>
       </div>
 
-      {/* Safety Notice Banner */}
-      <div className="p-3.5 rounded-lg bg-cyan-950/30 border border-cyan-800/50 flex items-start space-x-3 text-xs text-cyan-200">
-        <Radio className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0 animate-pulse" />
-        <div>
-          <span className="font-semibold text-cyan-300">Safe Local Simulation:</span> All simulation scenarios generate structured security events directly into the local SQLite database. No live network packets or external flooding traffic are generated.
+      {/* Safe Simulation & Hybrid Architecture Notice */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+        <div className="p-3.5 rounded-lg bg-cyan-950/30 border border-cyan-800/50 flex items-start space-x-3 text-cyan-200">
+          <Radio className="w-4 h-4 text-cyan-400 mt-0.5 shrink-0 animate-pulse" />
+          <div>
+            <span className="font-semibold text-cyan-300">Safe Local Simulation:</span> All simulation scenarios generate structured security events directly into the local SQLite database. No live network packets or external flooding traffic are generated.
+          </div>
+        </div>
+        <div className="p-3.5 rounded-lg bg-purple-950/30 border border-purple-800/50 flex items-start space-x-3 text-purple-200">
+          <Cpu className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
+          <div>
+            <span className="font-semibold text-purple-300">Hybrid Detection Architecture:</span> Generated events are concurrently evaluated by deterministic rules and the unsupervised Isolation Forest ML model. High-volume attacks may trigger dual alerts (deterministic signature + ML anomaly). ML anomaly scores represent statistical distances from baseline traffic, not attack probabilities or confirmed malicious intent.
+          </div>
         </div>
       </div>
 
@@ -204,17 +214,18 @@ export default function SimulatorPage({ setActiveTab }) {
               <span className="text-xs font-semibold text-slate-300 block">Incident Alerts Generated:</span>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {result.new_alerts.map((al) => (
-                  <div key={al.id} className="p-2.5 rounded-lg bg-black/40 border border-slate-800 text-xs flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center space-x-2">
+                  <div key={al.id} className="p-2.5 rounded-lg bg-black/40 border border-slate-800 text-xs flex items-center justify-between gap-3">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         <SeverityBadge severity={al.severity} />
-                        <span className="font-semibold text-slate-200">{al.title}</span>
+                        <DetectionBadge ruleId={al.rule_id} />
+                        <span className="font-semibold text-slate-200 truncate">{al.title}</span>
                       </div>
-                      <div className="text-[11px] text-slate-400 font-mono mt-1">Source: {al.source_ip}</div>
+                      <div className="text-[11px] text-slate-400 font-mono">Source: {al.source_ip}</div>
                     </div>
                     <button
                       onClick={() => setActiveTab('alerts')}
-                      className="text-xs text-cyan-400 hover:text-cyan-300 font-medium ml-2 underline"
+                      className="text-xs text-cyan-400 hover:text-cyan-300 font-medium ml-2 shrink-0 underline"
                     >
                       Investigate &rarr;
                     </button>
@@ -279,4 +290,3 @@ export default function SimulatorPage({ setActiveTab }) {
     </div>
   );
 }
-

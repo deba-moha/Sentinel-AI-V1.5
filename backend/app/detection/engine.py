@@ -5,6 +5,7 @@ Orchestrates rule evaluation, time-window grouping, and alert de-duplication.
 from typing import List, Optional
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
+from backend.app.core.config import settings
 from backend.app.models.security_log import SecurityLog
 from backend.app.models.alert import Alert
 from backend.app.detection.rules import (
@@ -13,7 +14,8 @@ from backend.app.detection.rules import (
     PortScanRule,
     RootLoginRule,
     DDoSAggregateRule,
-    AnomalousSpikeRule
+    AnomalousSpikeRule,
+    MLAnomalyRule
 )
 from backend.app.core.logging_config import logger
 
@@ -28,6 +30,9 @@ class DetectionEngine:
             DDoSAggregateRule(),
             AnomalousSpikeRule()
         ]
+        if settings.ENABLE_ML_DETECTION:
+            self.rules.append(MLAnomalyRule())
+
         logger.info(f"Initialized DetectionEngine with {len(self.rules)} active rules using central settings.")
 
     def add_rule(self, rule: BaseRule) -> None:
@@ -50,6 +55,7 @@ class DetectionEngine:
                     if alert:
                         generated_alerts.append(alert)
             except Exception as e:
+                db.rollback()
                 logger.error(f"Error evaluating rule {rule.id}: {e}", exc_info=True)
 
         return generated_alerts

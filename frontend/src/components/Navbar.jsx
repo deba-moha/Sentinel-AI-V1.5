@@ -22,10 +22,10 @@ export default function Navbar({ activeTab, setActiveTab, systemHealthy }) {
               <div className="flex items-center space-x-2">
                 <span className="font-extrabold text-lg tracking-wider text-white">SENTINEL</span>
                 <span className="text-xs px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 font-mono border border-cyan-800">
-                  AI v1.0
+                  AI v1.5
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">Foundation Security Monitoring</p>
+              <p className="text-[11px] text-slate-400 font-medium">Hybrid Threat & Anomaly Monitoring</p>
             </div>
           </div>
 

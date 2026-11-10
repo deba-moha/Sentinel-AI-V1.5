@@ -1,5 +1,5 @@
 """
-Sentinel AI - Core Configuration
+Sentinel AI V1.5 - Core Configuration
 Manages environment variables, server parameters, and centralized detection thresholds.
 """
 from typing import List, Union
@@ -10,7 +10,7 @@ from pydantic import field_validator
 class Settings(BaseSettings):
     # Server & Service Identification
     PROJECT_NAME: str = "Sentinel AI"
-    VERSION: str = "1.0.0"
+    VERSION: str = "1.5.0"
     ENVIRONMENT: str = "development"
     LOG_LEVEL: str = "INFO"
     HOST: str = "127.0.0.1"
@@ -33,6 +33,12 @@ class Settings(BaseSettings):
 
     ANOMALOUS_SPIKE_THRESHOLD: int = 20
     ANOMALOUS_SPIKE_WINDOW_SECONDS: int = 60
+
+    # Machine Learning Anomaly Detection Settings (Phase 4)
+    ENABLE_ML_DETECTION: bool = True
+    ML_ANOMALY_THRESHOLD: float = -0.0200
+    ML_WINDOW_SECONDS: int = 60
+    ML_MIN_EVENTS: int = 5
 
     @field_validator("CORS_ORIGINS", mode="before")
     def parse_cors_origins(cls, v: Union[str, List[str]]) -> List[str]:

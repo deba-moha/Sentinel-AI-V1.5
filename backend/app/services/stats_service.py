@@ -15,6 +15,16 @@ from backend.app.schemas.stats import (
     TopAttacker
 )
 
+ML_RULE_ID = "RULE-ML-ANOMALY-IFOREST"
+
+DETERMINISTIC_RULE_IDS = [
+    "RULE-AUTH-BRUTEFORCE",
+    "RULE-NET-PORTSCAN",
+    "RULE-AUTH-ROOT-LOGIN",
+    "RULE-NET-DDOS-AGGREGATE",
+    "RULE-ANOMALOUS-SPIKE"
+]
+
 
 class StatsService:
     @staticmethod
@@ -24,6 +34,18 @@ class StatsService:
         critical_alerts = db.query(func.count(Alert.id)).filter(Alert.severity == "CRITICAL").scalar() or 0
         active_alerts = db.query(func.count(Alert.id)).filter(Alert.status.in_(["NEW", "INVESTIGATING"])).scalar() or 0
         resolved_alerts = db.query(func.count(Alert.id)).filter(Alert.status == "RESOLVED").scalar() or 0
+
+        # ML-specific and Deterministic-specific alert counts (Phase 5 Step 4A)
+        ml_alerts = db.query(func.count(Alert.id)).filter(Alert.rule_id == ML_RULE_ID).scalar() or 0
+        rule_alerts = db.query(func.count(Alert.id)).filter(Alert.rule_id.in_(DETERMINISTIC_RULE_IDS)).scalar() or 0
+        active_ml_alerts = db.query(func.count(Alert.id)).filter(
+            Alert.rule_id == ML_RULE_ID,
+            Alert.status.in_(["NEW", "INVESTIGATING"])
+        ).scalar() or 0
+        resolved_ml_alerts = db.query(func.count(Alert.id)).filter(
+            Alert.rule_id == ML_RULE_ID,
+            Alert.status == "RESOLVED"
+        ).scalar() or 0
 
         # Severity breakdown for alerts
         sev_query = db.query(
@@ -55,10 +77,24 @@ class StatsService:
                 Alert.created_at < interval_end
             ).scalar() or 0
 
+            rule_al_count = db.query(func.count(Alert.id)).filter(
+                Alert.rule_id.in_(DETERMINISTIC_RULE_IDS),
+                Alert.created_at >= interval_start,
+                Alert.created_at < interval_end
+            ).scalar() or 0
+
+            ml_al_count = db.query(func.count(Alert.id)).filter(
+                Alert.rule_id == ML_RULE_ID,
+                Alert.created_at >= interval_start,
+                Alert.created_at < interval_end
+            ).scalar() or 0
+
             timeline.append(TimelinePoint(
                 time_label=time_label,
                 event_count=ev_count,
-                alert_count=al_count
+                alert_count=al_count,
+                rule_alert_count=rule_al_count,
+                ml_alert_count=ml_al_count
             ))
 
         # Top Attacking IPs
@@ -82,6 +118,10 @@ class StatsService:
             critical_alerts=critical_alerts,
             active_alerts=active_alerts,
             resolved_alerts=resolved_alerts,
+            ml_alerts=ml_alerts,
+            rule_alerts=rule_alerts,
+            active_ml_alerts=active_ml_alerts,
+            resolved_ml_alerts=resolved_ml_alerts,
             severity_breakdown=severity_breakdown,
             timeline=timeline,
             top_attackers=top_attackers

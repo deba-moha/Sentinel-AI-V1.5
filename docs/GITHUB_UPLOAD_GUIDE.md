@@ -1,35 +1,37 @@
-# Sentinel AI V1.0 — Manual GitHub Web Upload Guide
+# Sentinel AI V1.5 — Manual GitHub Web Upload Guide
 
-This guide is specifically written for beginners who manage their code through GitHub's web interface without running Git commands in the terminal.
+This guide is specifically written for users who manage and publish their code through GitHub's web interface without running Git commands in the terminal.
 
 ---
 
 ## 1. What to Upload vs. What to Exclude
 
-When uploading your project to GitHub through the website, you should **only upload source code, documentation, and configuration templates**. 
+When uploading Sentinel AI V1.5 to GitHub through the website, you should **only upload source code, documentation, and configuration templates**. 
 
 ### ✅ Files and Folders to Upload:
-- `backend/` (All source code: `app/`, `core/`, `detection/`, `services/`, etc.)
+- `backend/` (All source code: `app/api/`, `app/core/`, `app/detection/`, `app/ml/`, `app/models/`, `app/schemas/`, `app/services/`, `app/simulator/`, etc.)
+  - *Include `backend/app/ml/saved_models/.gitkeep` so the directory structure is preserved.*
 - `frontend/` (Source files: `src/`, `public/`, `package.json`, `package-lock.json`, `vite.config.js`, `tailwind.config.js`, `postcss.config.js`, `index.html`, `.env.example`)
-- `tests/` (All test suites: `backend/`, `detection/`, `conftest.py`)
-- `docs/` (`API_SPECIFICATION.md`, `SETUP_WINDOWS.md`, `GITHUB_UPLOAD_GUIDE.md`)
+- `tests/` (All test suites: `backend/`, `detection/`, `ml/`, `conftest.py`)
+- `docs/` (`API_SPECIFICATION.md`, `SETUP_WINDOWS.md`, `GITHUB_UPLOAD_GUIDE.md`, `HYBRID_DETECTION_ENGINE.md`, `ISOLATION_FOREST.md`, `ML_EVALUATION.md`, `ML_FEATURE_ENGINEERING.md`)
 - `requirements.txt` (Pinned backend Python dependencies)
 - `.env.example` (Root environment configuration template)
 - `.gitignore` (Git ignore rules for tools and developers)
-- `README.md` (Project overview and full documentation)
+- `README.md` (Project overview, hybrid architecture, and full documentation)
 - `start_backend.bat` (Windows backend startup script)
 - `start_frontend.bat` (Windows frontend startup script)
 - `start_sentinel.bat` (Windows joint launcher script)
 
 ### ❌ DO NOT Upload (Excluded Items):
-- `venv/` or `.venv/` (Local Python virtual environment — heavy and system-dependent)
-- `frontend/node_modules/` (Local Node.js libraries — heavy and installed via `npm install`)
-- `frontend/dist/` (Compiled production artifacts — regenerated via `npm run build`)
-- `frontend/.vite/` (Vite cache)
-- `.env` or `frontend/.env` (Local environment variables — may contain machine-specific paths)
-- `sentinel.db`, `*.sqlite`, `*.db` (Local SQLite databases — regenerated automatically on launch)
-- `__pycache__/` or `*.pyc` (Compiled Python bytecode)
-- `.pytest_cache/` (Pytest temporary cache)
+- `backend/app/ml/saved_models/*.joblib` or `*.joblib` (Trained ML model binary artifacts — heavy binaries excluded via `.gitignore`; users generate them locally in 2 seconds via `python -m backend.app.ml.train`).
+- `venv/` or `.venv/` (Local Python virtual environment — heavy and system-dependent).
+- `frontend/node_modules/` (Local Node.js libraries — heavy and installed via `npm.cmd install`).
+- `frontend/dist/` (Compiled production artifacts — regenerated via `npm run build`).
+- `frontend/.vite/` (Vite temporary cache).
+- `.env` or `frontend/.env` (Local environment variables — may contain machine-specific settings).
+- `sentinel.db`, `*.sqlite`, `*.db` (Local SQLite databases — regenerated automatically on launch).
+- `__pycache__/` or `*.pyc` (Compiled Python bytecode).
+- `.pytest_cache/` (Pytest temporary cache).
 
 ---
 
@@ -39,7 +41,7 @@ When uploading your project to GitHub through the website, you should **only upl
 1. Open your web browser and navigate to [GitHub](https://github.com/).
 2. Log in to your GitHub account.
 3. Click the **+** (plus icon) in the top-right corner and select **New repository**.
-4. Enter your repository name: `Sentinel-AI` (or `sentinel-ai`).
+4. Enter your repository name: `Sentinel-AI-V1.5` (or `sentinel-ai-v1.5`).
 5. Choose **Public** or **Private**.
 6. **Important**: Under *"Initialize this repository with"*, leave all checkboxes **unchecked** (do NOT check "Add a README file", do NOT check ".gitignore template", do NOT check "Choose a license") because our project already includes complete versions of these files.
 7. Click **Create repository**.
@@ -47,14 +49,14 @@ When uploading your project to GitHub through the website, you should **only upl
 ### Step 2: Upload Project Files via Web Browser
 1. On the new repository page, click the link that says **"uploading an existing file"**.
 2. Open Windows File Explorer and navigate to your project folder:
-   `C:\Users\DEBASIS\Documents\Sentinel-AI`
+   `C:\Users\DEBASIS\Documents\Sentinel-AI-V1.5`
 3. Drag and drop the approved files and folders (e.g., `backend`, `docs`, `tests`, `requirements.txt`, `README.md`, `.gitignore`, `.env.example`, `.bat` files) into the GitHub dropzone.
 4. For the `frontend` directory:
    - Ensure you do NOT include `frontend/node_modules/` or `frontend/dist/`.
    - Drag the `frontend` folder (containing `src`, `package.json`, etc.) into GitHub.
 5. In the **Commit changes** box at the bottom of the page:
-   - Enter a title: `Initial release: Sentinel AI V1.0 (Foundation)`
-   - Enter an optional description: `V1.0 deterministic detection engine, synthetic telemetry simulator, REST API, and SOC dashboard.`
+   - Enter a title: `Release Sentinel AI V1.5: Hybrid Threat Detection Platform`
+   - Enter an optional description: `V1.5 hybrid detection engine combining 5 deterministic rules with Isolation Forest ML anomaly scoring, React SOC dashboard, and synthetic attack simulator.`
    - Keep "Commit directly to the main branch" selected.
 6. Click **Commit changes**.
 
@@ -68,7 +70,7 @@ When uploading your project to GitHub through the website, you should **only upl
 
 ## 3. How Other Users / Evaluators Run Your Repository
 
-When someone downloads or clones your repository from GitHub, they can run Sentinel AI V1.0 in 4 simple steps:
+When someone downloads or clones your repository from GitHub, they can run Sentinel AI V1.5 in 5 simple steps:
 
 1. **Download and Extract**:
    Click **Code** -> **Download ZIP** on GitHub and extract the folder.
@@ -80,19 +82,24 @@ When someone downloads or clones your repository from GitHub, they can run Senti
    - Backend:
      ```powershell
      python -m venv venv
-     venv\Scripts\pip install -r requirements.txt
+     .\venv\Scripts\Activate.ps1
+     python -m pip install -r requirements.txt
      ```
    - Frontend:
      ```powershell
      cd frontend
-     npm install
+     npm.cmd install
      cd ..
      ```
 
-4. **Launch**:
+4. **Train the ML Anomaly Model**:
+   ```powershell
+   python -m backend.app.ml.train
+   ```
+
+5. **Launch**:
    Double-click `start_sentinel.bat` or run:
    - `start_backend.bat` in one window.
    - `start_frontend.bat` in a second window.
 
 Access the dashboard at `http://localhost:5173` and Swagger API docs at `http://127.0.0.1:8000/docs`.
-

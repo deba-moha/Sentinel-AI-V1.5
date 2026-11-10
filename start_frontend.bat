@@ -6,7 +6,7 @@ title Sentinel AI - SOC Frontend Dashboard
 cd /d "%~dp0frontend"
 
 echo ================================================================
-echo           SENTINEL AI V1.0 - FRONTEND DASHBOARD INITIALIZATION  
+echo           SENTINEL AI V1.5 - FRONTEND DASHBOARD INITIALIZATION  
 echo ================================================================
 
 :: Check if Node.js / npm is available in PATH
@@ -25,7 +25,7 @@ if not exist "%~dp0frontend\node_modules\" (
     echo.
     echo To install the required frontend packages, please run:
     echo   cd frontend
-    echo   npm install
+    echo   npm.cmd install
     echo.
     pause
     exit /b 1
@@ -33,7 +33,7 @@ if not exist "%~dp0frontend\node_modules\" (
 
 echo.
 echo ================================================================
-echo           SENTINEL AI V1.0 - SOC DASHBOARD RUNNING              
+echo           SENTINEL AI V1.5 - SOC DASHBOARD RUNNING              
 echo ================================================================
 echo  * Frontend Application: http://localhost:5173
 echo  * Backend API Target:   http://127.0.0.1:8000

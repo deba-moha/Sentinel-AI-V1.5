@@ -6,11 +6,11 @@ title Sentinel AI - Launch Controller
 cd /d "%~dp0"
 
 echo ================================================================
-echo           SENTINEL AI V1.0 - LAUNCH CONTROLLER                  
+echo           SENTINEL AI V1.5 - HYBRID LAUNCH CONTROLLER            
 echo ================================================================
 echo.
-echo  Starting Sentinel AI V1.0 Platform:
-echo   - Backend API Server: FastAPI on port 8000
+echo  Starting Sentinel AI V1.5 Platform:
+echo   - Backend API Server: FastAPI on port 8000 (Hybrid Detection Engine)
 echo   - SOC Dashboard: React and Vite on port 5173
 echo.
 echo ================================================================
@@ -55,7 +55,7 @@ echo [*] Launching Frontend Dashboard in a new window...
 start "Sentinel AI - Frontend SOC" cmd /k "call "%~dp0start_frontend.bat""
 
 echo.
-echo [SUCCESS] Both Sentinel AI services have been launched!
+echo [SUCCESS] Both Sentinel AI V1.5 services have been launched!
 echo Check the individual terminal windows for live server logs.
 echo You may close this launcher window at any time.
 echo.

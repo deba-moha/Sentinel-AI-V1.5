@@ -1,7 +1,7 @@
 """
 Sentinel AI - Alert Investigation & Management API Routes
 """
-from typing import List, Optional
+from typing import List, Optional, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from backend.app.database.session import get_db
@@ -18,6 +18,7 @@ def get_alerts(
     severity: Optional[str] = None,
     status: Optional[str] = None,
     search: Optional[str] = None,
+    engine: Optional[Literal["ML", "RULE"]] = Query(None, description="Filter by detection engine: 'RULE' or 'ML'"),
     db: Session = Depends(get_db)
 ):
     """Retrieve security alerts with optional severity/status filters."""
@@ -27,7 +28,8 @@ def get_alerts(
         limit=limit,
         severity=severity,
         status=status,
-        search=search
+        search=search,
+        engine=engine
     )
     return [AlertResponse.model_validate(a) for a in alerts]
 

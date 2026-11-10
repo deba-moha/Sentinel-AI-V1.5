@@ -31,13 +31,14 @@ export const apiService = {
     return handleResponse(res);
   },
 
-  async getAlerts({ skip = 0, limit = 50, severity = '', status = '', search = '' } = {}) {
+  async getAlerts({ skip = 0, limit = 50, severity = '', status = '', search = '', engine = '' } = {}) {
     const params = new URLSearchParams();
     params.set('skip', skip.toString());
     params.set('limit', limit.toString());
     if (severity) params.set('severity', severity);
     if (status) params.set('status', status);
     if (search) params.set('search', search);
+    if (engine) params.set('engine', engine);
 
     const res = await fetch(`${API_BASE}/alerts?${params.toString()}`);
     return handleResponse(res);

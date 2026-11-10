@@ -2,26 +2,88 @@ import React, { useState, useEffect } from 'react';
 import {
   AlertOctagon,
   Search,
-  Filter,
   CheckCircle,
   AlertCircle,
-  Clock,
   RefreshCw,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert
+  Cpu,
+  Info
 } from 'lucide-react';
 import SeverityBadge from '../components/SeverityBadge';
 import StatusBadge from '../components/StatusBadge';
+import DetectionBadge from '../components/DetectionBadge';
 import { apiService } from '../services/api';
+
+/**
+ * Safely parses structured metrics from the ML anomaly description string.
+ * Returns null if the description is missing or invalid.
+ */
+function parseMLDescription(description) {
+  if (!description || typeof description !== 'string' || !description.includes('[ML Anomaly Detection]')) {
+    return null;
+  }
+
+  // Model Version
+  const modelVerMatch = description.match(/Isolation Forest\s+v([\w.-]+)/i);
+
+  // Normalized Anomaly Score
+  const normScoreMatch = description.match(/Normalized Anomaly Score\s*=\s*([-\d.]+)/i);
+
+  // Raw Decision Score
+  const rawScoreMatch = description.match(/Raw Score\s*=\s*([-\d.]+)/i);
+
+  // Decision Threshold
+  const cutoffMatch = description.match(/Decision Cutoff:\s*([-\d.]+)/i);
+
+  // Total Events
+  const totalEventsMatch = description.match(/(\d+)\s+total events/i);
+
+  // Failed Authentication Count
+  const failedAuthMatch = description.match(/(\d+)\s+failed auths?/i);
+
+  // Unique Source IPs
+  const uniqueSrcIpsMatch = description.match(/(\d+)\s+unique source IPs?/i);
+
+  // Unique Destination IPs
+  const uniqueDstIpsMatch = description.match(/(\d+)\s+unique dest(?:ination)?\s+IPs?/i);
+
+  // Unique Destination Ports
+  const uniqueDstPortsMatch = description.match(/(\d+)\s+unique dest(?:ination)?\s+ports?/i);
+
+  // Event Frequency
+  const freqMatch = description.match(/([\d.]+)\s+req\/s/i);
+
+  // Average Time Interval
+  const avgIntervalMatch = description.match(/([\d.]+)\s*s?\s+avg(?:erage)?\s+time\s+interval/i);
+
+  // Network Traffic Volume
+  const volumeMatch = description.match(/([\d.]+)\s+(?:bytes|bytes volume)/i);
+
+  return {
+    modelVersion: modelVerMatch ? `v${modelVerMatch[1]}` : null,
+    normalizedScore: normScoreMatch ? normScoreMatch[1] : null,
+    rawScore: rawScoreMatch ? rawScoreMatch[1] : null,
+    threshold: cutoffMatch ? cutoffMatch[1] : null,
+    totalEvents: totalEventsMatch ? totalEventsMatch[1] : null,
+    failedAuthCount: failedAuthMatch ? failedAuthMatch[1] : null,
+    uniqueSourceIps: uniqueSrcIpsMatch ? uniqueSrcIpsMatch[1] : null,
+    uniqueDestIps: uniqueDstIpsMatch ? uniqueDstIpsMatch[1] : null,
+    uniqueDestPorts: uniqueDstPortsMatch ? uniqueDstPortsMatch[1] : null,
+    eventFrequency: freqMatch ? `${freqMatch[1]} req/s` : null,
+    avgTimeInterval: avgIntervalMatch ? `${avgIntervalMatch[1]} s` : null,
+    networkTrafficVolume: volumeMatch ? `${volumeMatch[1]} bytes` : null,
+  };
+}
 
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSeverity, setSelectedSeverity] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedEngine, setSelectedEngine] = useState(''); // '' (All), 'RULE' (Rule-Based), 'ML' (Machine Learning)
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [updatingId, setUpdatingId] = useState(null);
@@ -39,7 +101,8 @@ export default function AlertsPage() {
         limit: pageSize,
         severity: selectedSeverity,
         status: selectedStatus,
-        search: searchTerm
+        search: searchTerm,
+        engine: selectedEngine
       });
       setAlerts(data);
     } catch (err) {
@@ -51,7 +114,7 @@ export default function AlertsPage() {
 
   useEffect(() => {
     loadAlerts();
-  }, [page, pageSize, selectedSeverity, selectedStatus]);
+  }, [page, pageSize, selectedSeverity, selectedStatus, selectedEngine]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -81,6 +144,13 @@ export default function AlertsPage() {
     }
   };
 
+  const renderMetricValue = (val) => {
+    if (val === null || val === undefined || val === '') {
+      return <span className="text-slate-500 italic text-[11px]">Not available</span>;
+    }
+    return <span className="font-mono font-bold text-slate-200 text-xs">{val}</span>;
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Title & Refresh */}
@@ -91,7 +161,7 @@ export default function AlertsPage() {
             Threat Alert Investigation & Triage Centre
           </h1>
           <p className="text-xs text-slate-400 mt-1">
-            Review security incidents detected by deterministic rules, inspect incident payloads, and manage triage lifecycles.
+            Review security incidents detected by deterministic rules and Machine Learning anomaly detection, inspect incident payloads, and manage triage lifecycles.
           </p>
         </div>
         <button
@@ -139,6 +209,23 @@ export default function AlertsPage() {
         </form>
 
         <div className="flex flex-wrap items-center gap-3">
+          {/* Detection Engine Filter */}
+          <div className="flex items-center space-x-1.5">
+            <span className="text-xs text-slate-400">Engine:</span>
+            <select
+              value={selectedEngine}
+              onChange={(e) => {
+                setSelectedEngine(e.target.value);
+                setPage(1);
+              }}
+              className="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-cyan-500"
+            >
+              <option value="">All Engines</option>
+              <option value="RULE">Deterministic Rules</option>
+              <option value="ML">Machine Learning</option>
+            </select>
+          </div>
+
           {/* Severity Filter */}
           <div className="flex items-center space-x-1.5">
             <span className="text-xs text-slate-400">Severity:</span>
@@ -235,7 +322,10 @@ export default function AlertsPage() {
                           <SeverityBadge severity={alert.severity} />
                         </td>
                         <td className="py-3 px-4">
-                          <div className="font-medium text-slate-200">{alert.title}</div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium text-slate-200">{alert.title}</span>
+                            <DetectionBadge ruleId={alert.rule_id} />
+                          </div>
                           <div className="text-[11px] font-mono text-slate-500 mt-0.5">{alert.rule_id}</div>
                         </td>
                         <td className="py-3 px-4 font-mono text-cyan-300 font-semibold">{alert.source_ip}</td>
@@ -264,13 +354,108 @@ export default function AlertsPage() {
                       {isExpanded && (
                         <tr className="bg-slate-900/30">
                           <td colSpan="8" className="p-4 border-t border-slate-800/80">
-                            <div className="space-y-3">
-                              <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800">
-                                <span className="text-slate-400 font-semibold uppercase tracking-wider block mb-1">
-                                  Incident Description:
-                                </span>
-                                {alert.description}
-                              </div>
+                            <div className="space-y-4">
+                              {alert.rule_id === 'RULE-ML-ANOMALY-IFOREST' ? (
+                                /* Dedicated ML Anomaly Explanation Section */
+                                <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-800/40 space-y-4">
+                                  <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-purple-300 uppercase tracking-wider">
+                                      <Cpu className="w-4 h-4 text-purple-400" />
+                                      Machine Learning Anomaly Telemetry Explanation
+                                    </div>
+                                    <span className="text-[10px] px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-700/60 font-mono font-bold">
+                                      Isolation Forest • 9 Numerical Features
+                                    </span>
+                                  </div>
+
+                                  {/* Analyst Disclaimer (Exact Required Wording) */}
+                                  <div className="p-3 rounded-lg bg-amber-950/30 border border-amber-800/40 text-xs text-amber-200/90 flex items-start gap-2.5">
+                                    <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                                    <div>
+                                      <span className="font-semibold text-amber-300 block mb-0.5 uppercase tracking-wider text-[10px]">
+                                        Analyst Disclaimer
+                                      </span>
+                                      An ML anomaly indicates statistically unusual telemetry. It is not proof of malicious activity. The anomaly score is not a probability, and the model does not establish causal feature attribution.
+                                    </div>
+                                  </div>
+
+                                  {/* Extracted Values Grid (All 12 Requested Fields) */}
+                                  {(() => {
+                                    const parsed = parseMLDescription(alert.description);
+                                    return (
+                                      <div className="space-y-3">
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 text-xs">
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Normalized Anomaly Score</span>
+                                            {renderMetricValue(parsed?.normalizedScore)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Raw Decision Score</span>
+                                            {renderMetricValue(parsed?.rawScore)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Decision Threshold</span>
+                                            {renderMetricValue(parsed?.threshold ? `< ${parsed.threshold}` : null)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Model Version</span>
+                                            {renderMetricValue(parsed?.modelVersion)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Total Events</span>
+                                            {renderMetricValue(parsed?.totalEvents ?? alert.trigger_count)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Failed Auth Count</span>
+                                            {renderMetricValue(parsed?.failedAuthCount)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Unique Source IPs</span>
+                                            {renderMetricValue(parsed?.uniqueSourceIps)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Unique Destination IPs</span>
+                                            {renderMetricValue(parsed?.uniqueDestIps)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Unique Dest Ports</span>
+                                            {renderMetricValue(parsed?.uniqueDestPorts)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Event Frequency</span>
+                                            {renderMetricValue(parsed?.eventFrequency)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Average Time Interval</span>
+                                            {renderMetricValue(parsed?.avgTimeInterval)}
+                                          </div>
+                                          <div className="p-2.5 rounded-lg bg-slate-950/80 border border-purple-900/30">
+                                            <span className="text-[10px] text-slate-400 block uppercase">Network Traffic Volume</span>
+                                            {renderMetricValue(parsed?.networkTrafficVolume)}
+                                          </div>
+                                        </div>
+
+                                        <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                          <span className="text-slate-400 font-semibold uppercase tracking-wider block mb-1 text-[10px]">
+                                            Full Telemetry Description:
+                                          </span>
+                                          <p className="font-mono text-[11px] text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                            {alert.description}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+                              ) : (
+                                /* Deterministic Rule Description */
+                                <div className="text-xs text-slate-300 bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                  <span className="text-slate-400 font-semibold uppercase tracking-wider block mb-1">
+                                    Incident Description:
+                                  </span>
+                                  {alert.description}
+                                </div>
+                              )}
 
                               <div className="flex flex-wrap items-center justify-between gap-3 text-xs">
                                 <div className="text-slate-400 space-x-4">

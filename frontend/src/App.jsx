@@ -47,7 +47,7 @@ export default function App() {
       <footer className="border-t border-slate-800 bg-[#0c101a] py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div>
-            <span className="font-semibold text-slate-400">Sentinel AI</span> — Version 1.0 (Foundation)
+            <span className="font-semibold text-slate-400">Sentinel AI</span> — Version 1.5 (Hybrid Threat Detection)
           </div>
           <div>
             Built with FastAPI, SQLite, Pydantic, React & Tailwind CSS

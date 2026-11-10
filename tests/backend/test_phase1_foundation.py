@@ -15,7 +15,7 @@ from backend.app.schemas.alert import AlertResponse, AlertUpdate
 def test_phase1_environment_configuration():
     """Verify that configuration settings and central detection thresholds are loaded."""
     assert settings.PROJECT_NAME == "Sentinel AI"
-    assert settings.VERSION == "1.0.0"
+    assert settings.VERSION == "1.5.0"
     assert settings.DATABASE_URL.startswith("sqlite")
     # Verify centralized detection threshold configurations
     assert settings.BRUTE_FORCE_THRESHOLD >= 1

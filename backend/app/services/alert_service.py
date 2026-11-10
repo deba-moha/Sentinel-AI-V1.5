@@ -20,7 +20,8 @@ class AlertService:
         limit: int = 50,
         severity: Optional[str] = None,
         status: Optional[str] = None,
-        search: Optional[str] = None
+        search: Optional[str] = None,
+        engine: Optional[str] = None
     ) -> List[Alert]:
         """
         Queries alerts with optional filtering and pagination.
@@ -31,6 +32,14 @@ class AlertService:
             query = query.filter(Alert.severity == severity.upper())
         if status:
             query = query.filter(Alert.status == status.upper())
+        if engine is not None and engine != "":
+            engine_norm = engine.strip().upper()
+            if engine_norm == "ML":
+                query = query.filter(Alert.rule_id == "RULE-ML-ANOMALY-IFOREST")
+            elif engine_norm == "RULE":
+                query = query.filter(Alert.rule_id != "RULE-ML-ANOMALY-IFOREST")
+            else:
+                raise ValueError(f"Invalid detection engine '{engine}'. Allowed values: 'ML', 'RULE'")
         if search:
             search_fmt = f"%{search}%"
             query = query.filter(

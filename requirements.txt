@@ -1,4 +1,4 @@
-# Sentinel AI - V1.0 Foundation Dependencies
+# Sentinel AI - V1.5 Hybrid Detection Platform Dependencies
 # Verified compatibility: Python 3.11 - 3.13 (Windows x64)
 
 fastapi==0.110.3
@@ -10,3 +10,10 @@ python-dotenv==1.0.1
 pytest==8.1.1
 requests==2.31.0
 httpx==0.28.1
+
+# Machine Learning Dependencies (Isolation Forest)
+numpy>=1.26.4
+scikit-learn>=1.4.2
+joblib>=1.4.2
+
+

@@ -15,6 +15,8 @@ class TimelinePoint(BaseModel):
     time_label: str
     event_count: int
     alert_count: int
+    rule_alert_count: int = 0
+    ml_alert_count: int = 0
 
 
 class TopAttacker(BaseModel):
@@ -29,6 +31,10 @@ class DashboardStatsResponse(BaseModel):
     critical_alerts: int
     active_alerts: int
     resolved_alerts: int
+    ml_alerts: int = 0
+    rule_alerts: int = 0
+    active_ml_alerts: int = 0
+    resolved_ml_alerts: int = 0
     severity_breakdown: List[SeverityCount]
     timeline: List[TimelinePoint]
     top_attackers: List[TopAttacker]

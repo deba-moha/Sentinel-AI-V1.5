@@ -6,6 +6,7 @@ export default function StatCard({ title, value, icon: Icon, alertColor, subtitl
     red: 'border-red-500/30 text-red-400 bg-red-950/20 shadow-[0_0_15px_rgba(239,68,68,0.1)]',
     amber: 'border-amber-500/30 text-amber-400 bg-amber-950/20 shadow-[0_0_15px_rgba(245,158,11,0.1)]',
     emerald: 'border-emerald-500/30 text-emerald-400 bg-emerald-950/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]',
+    purple: 'border-purple-500/30 text-purple-400 bg-purple-950/20 shadow-[0_0_15px_rgba(168,85,247,0.1)]',
     slate: 'border-slate-800 text-slate-400 bg-slate-900/40'
   };
 

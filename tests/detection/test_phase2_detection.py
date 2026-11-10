@@ -399,10 +399,11 @@ def test_multi_destination_ddos_are_not_erroneously_merged(db_session):
 # 7. DE-DUPLICATION & LIFECYCLE PRESERVATION
 # ============================================================================
 
-def test_ongoing_incident_deduplication_and_trigger_count(db_session):
+def test_ongoing_incident_deduplication_and_trigger_count(db_session, monkeypatch):
     """
     When an attack continues, the active Alert must be updated rather than duplicated.
     """
+    monkeypatch.setattr(settings, "ENABLE_ML_DETECTION", False)
     engine = DetectionEngine()
     attacker = "198.51.100.99"
     now = datetime.now(timezone.utc)
@@ -419,7 +420,10 @@ def test_ongoing_incident_deduplication_and_trigger_count(db_session):
         db_session.commit()
         engine.evaluate_log(log, db_session)
 
-    alerts = db_session.query(Alert).filter(Alert.source_ip == attacker).all()
+    alerts = db_session.query(Alert).filter(
+        Alert.source_ip == attacker,
+        Alert.rule_id == "RULE-AUTH-BRUTEFORCE"
+    ).all()
     assert len(alerts) == 1
     assert alerts[0].trigger_count == 5
     assert alerts[0].status == "NEW"
@@ -437,15 +441,19 @@ def test_ongoing_incident_deduplication_and_trigger_count(db_session):
         engine.evaluate_log(log, db_session)
 
     # Still exactly ONE alert, trigger count updated to 8
-    alerts_after = db_session.query(Alert).filter(Alert.source_ip == attacker).all()
+    alerts_after = db_session.query(Alert).filter(
+        Alert.source_ip == attacker,
+        Alert.rule_id == "RULE-AUTH-BRUTEFORCE"
+    ).all()
     assert len(alerts_after) == 1
     assert alerts_after[0].trigger_count == 8
 
 
-def test_resolved_alert_allows_new_incident_on_fresh_attack(db_session):
+def test_resolved_alert_allows_new_incident_on_fresh_attack(db_session, monkeypatch):
     """
     If an existing alert is RESOLVED, a subsequent attack pattern opens a fresh alert.
     """
+    monkeypatch.setattr(settings, "ENABLE_ML_DETECTION", False)
     engine = DetectionEngine()
     attacker = "198.51.100.111"
     now = datetime.now(timezone.utc)
@@ -462,7 +470,10 @@ def test_resolved_alert_allows_new_incident_on_fresh_attack(db_session):
         db_session.commit()
         engine.evaluate_log(log, db_session)
 
-    alert_1 = db_session.query(Alert).filter(Alert.source_ip == attacker).first()
+    alert_1 = db_session.query(Alert).filter(
+        Alert.source_ip == attacker,
+        Alert.rule_id == "RULE-AUTH-BRUTEFORCE"
+    ).first()
     assert alert_1 is not None
 
     # Mark alert as RESOLVED
@@ -483,7 +494,10 @@ def test_resolved_alert_allows_new_incident_on_fresh_attack(db_session):
         engine.evaluate_log(log, db_session)
 
     # There should now be TWO alerts: one RESOLVED and one NEW
-    all_alerts = db_session.query(Alert).filter(Alert.source_ip == attacker).all()
+    all_alerts = db_session.query(Alert).filter(
+        Alert.source_ip == attacker,
+        Alert.rule_id == "RULE-AUTH-BRUTEFORCE"
+    ).all()
     assert len(all_alerts) == 2
     statuses = [a.status for a in all_alerts]
     assert "RESOLVED" in statuses

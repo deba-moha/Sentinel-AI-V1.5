@@ -6,7 +6,7 @@ title Sentinel AI - Backend Server
 cd /d "%~dp0"
 
 echo ================================================================
-echo           SENTINEL AI V1.0 - BACKEND SERVER INITIALIZATION      
+echo           SENTINEL AI V1.5 - BACKEND SERVER INITIALIZATION      
 echo ================================================================
 
 :: Check if Python is installed on the host
@@ -31,12 +31,13 @@ if exist "%~dp0venv\Scripts\activate.bat" (
     echo If you have not created the virtual environment yet, please run:
     echo   python -m venv venv
     echo   venv\Scripts\pip install -r requirements.txt
+    echo   python -m backend.app.ml.train
     echo.
     echo Attempting to run with system Python...
 )
 
 :: Verify uvicorn availability
-python -c "import uvicorn, fastapi, sqlalchemy, pydantic" >nul 2>nul
+python -c "import uvicorn, fastapi, sqlalchemy, pydantic, sklearn, joblib, numpy" >nul 2>nul
 if %errorlevel% neq 0 (
     echo [ERROR] Core backend dependencies are missing!
     echo Please install the required packages using:
@@ -48,7 +49,7 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ================================================================
-echo           SENTINEL AI V1.0 - BACKEND SERVER RUNNING             
+echo           SENTINEL AI V1.5 - BACKEND SERVER RUNNING             
 echo ================================================================
 echo  * Local API Service:    http://127.0.0.1:8000
 echo  * Interactive Swagger:  http://127.0.0.1:8000/docs

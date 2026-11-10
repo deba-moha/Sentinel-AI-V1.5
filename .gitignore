@@ -58,6 +58,12 @@ yarn-error.log*
 .coverage
 htmlcov/
 
+# Machine Learning Artifacts
+*.joblib
+*.pkl
+backend/app/ml/saved_models/*.joblib
+!backend/app/ml/saved_models/.gitkeep
+
 # IDE & Operating System
 .vscode/
 .idea/
