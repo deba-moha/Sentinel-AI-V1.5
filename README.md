@@ -1,5 +1,22 @@
 # SENTINEL AI — Cybersecurity Monitoring & Threat Investigation Platform
+## 👥 Team Beatwise
 
+**Project:** Sentinel AI V1.5 – Hybrid AI-Powered Cybersecurity Threat Detection and Monitoring System
+
+We are Team Beatwise, a group of students working together to develop an intelligent cybersecurity monitoring platform that combines rule-based detection with machine-learning-based anomaly detection.
+
+### Team Members
+
+| S. No. | Name | Role |
+|---|---|---|
+| 1 | Biswaprakash Naik | Team Leader |
+| 2 | Banshika Das | Team Member |
+| 3 | Harishankar Pramanik | Team Member |
+| 4 | Debasis Mohapatra | Team Member |
+
+**Institution:** Sambalpur University Institute of Information Technology (SUIIT), Sambalpur, Odisha
+
+**Team Name:** Beatwise
 > **Version 1.5 (Hybrid Threat Detection & Machine Learning)**  
 > A lightweight, modular Security Operations Centre (SOC) monitoring and threat detection platform combining deterministic cyber threat detection rules with unsupervised Machine Learning (Isolation Forest) anomaly scoring. Built with Python, FastAPI, SQLite, Scikit-learn, React, Vite, and Tailwind CSS.
 
